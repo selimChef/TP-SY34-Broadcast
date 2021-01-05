@@ -95,7 +95,6 @@ void broadcastData(char *, ...);
 void initChat(void);
 void initNwk(void);
 void sendBroadcast(char *pseudo, int counter);
-void sendUnicast(char *pseudo, int counter, char buttonPushed);
 
 
 /****************************************************/
@@ -175,7 +174,6 @@ void initNwk()
         for (index = 0; index < respondingDevices; index++)
         {
             if (found = (ActiveScanResults[index].PANID.Val == MY_PAN_ID))
-                //toto = index;
                 break;
         }
     }
@@ -267,20 +265,6 @@ void RX(void)
  */
 void TX(void)
 {
-    //    state2 = PORTBbits.RB2;
-    //    if(!state2 && prevState2 && countRB2 < 99){
-    //        countRB2++;
-    //        sendUnicast(myPseudo, countRB2, 2);
-    //    }
-    //    prevState2 = state2;
-    //
-    //    state0 = PORTBbits.RB0;
-    //    if(!state0 && prevState0 && countRB0 < 99){
-    //        countRB0++;
-    //        sendUnicast(myPseudo, countRB0, 0);
-    //    }
-    //    prevState0 = state0;
-
     state0 = PORTBbits.RB0;
     if (!state0 && prevState0 && countRB0 < 99)
     {
@@ -311,59 +295,4 @@ void sendBroadcast(char *pseudo, int counter)
     char msgControl[20];
     sprintf(msgControl, "\r\nEnvoi %d ...", counter);
     uartPrint(msgControl);
-}
-
-/**
- * Envoi d'un message en unicast
- * @param pseudo : pseudo de l'utilisateur qui envoie le message
- * @param counter : compteur du nombre de messages envoyés
- * @param buttonPushed : bouton utilisé pour l'envoi (0 pour RB0, 2 pour RB2)
- */
-void sendUnicast(char *pseudo, int counter, char buttonPushed)
-{
-    char msg[MESSAGE_LENGTH];           // message à envoyer
-    int i = 0;                          // déplacement dans le message
-    int myAdress = myShortAddress.Val;  // adresse du terminal
-    uint16_t destinationAdress;         // adresse du terminal de destination 
-
-    sprintf(msg, "\r\nPseudo : %s, message unicast : %d", pseudo, counter);
-    MiApp_FlushTx();
-    while (msg[i] != '\0')
-    {
-        MiApp_WriteData(msg[i]);
-        i++;
-    }
-    MiApp_WriteData('\0');
-
-    char msgUnit[100];
-    uartPrint(msgUnit);
-
-    // définition adresse de destination 
-    if (buttonPushed == 0)
-    {
-        if (myAdress == 0)
-        {
-            destinationAdress = 0x0100;
-        }
-        else
-        {
-            destinationAdress = 0x0000;
-        }
-    }
-    else
-    {
-        if (myAdress == 200)
-        {
-            destinationAdress = 0x0100;
-        }
-        else
-        {
-            destinationAdress = 0x0200;
-        }
-    }
-
-    sprintf(msgUnit, "\r\nAdresse d'envoi : 0x %4x", destinationAdress);
-    
-    // envoi du message en unicast
-    MiApp_UnicastAddress((uint8_t *)&destinationAdress, false, false); 
 }
